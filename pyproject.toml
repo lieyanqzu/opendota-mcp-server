@@ -1,0 +1,65 @@
+[build-system]
+requires = ["setuptools", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "opendota-agent"
+version = "0.1.1"
+description = "Automatic topic labeling using LLMs"
+authors = [
+    {name = "Anthony Susevski", email = "asusevski@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.10"
+
+
+dependencies = [
+    "aiohttp>=3.11.12",
+    "anthropic>=0.46.0",
+    "dnspython>=2.7.0",
+    "fastapi>=0.115.8",
+    "httpx>=0.28.1",
+    "huggingface-hub>=0.28.1",
+    "itsdangerous>=2.2.0",
+    "jinja2>=3.1.5",
+    "mcp[cli]>=1.2.1",
+    "motor>=3.7.0",
+    "pydantic-settings>=2.7.1",
+    "pymongo>=4.11.1",
+    "pyproject-toml>=0.1.0",
+    "pytest",
+    "python-dotenv>=1.0.1",
+    "streamlit",
+    "uuid>=1.30",
+]
+urls = {Repository = "https://github.com/asusevski/opendota-agent"}
+
+[project.optional-dependencies]
+dev = [
+    "black==24.10.0",
+    "ruff==0.8.0",
+    "isort==5.13.2",
+    "pyright==1.1.389",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.ruff]
+line-length = 88
+include = ["src/*"]
+exclude = [".venv*", "**/__pycache__", "*.ipynb"]
+
+[tool.ruff.lint.per-file-ignores]
+"**/__init__.py" = ["F401"]
+
+[tool.pyright]
+include = ["src/*"]
+exclude = [".venv*", "**/__pycache__", "**/__init__.py", "data/*"]
+typeCheckingMode = "standard"
