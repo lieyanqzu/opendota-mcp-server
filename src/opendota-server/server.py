@@ -200,7 +200,7 @@ def format_match_data(match: Dict) -> str:
             f"- K/D/A: {kills}/{deaths}/{assists}\n"
             f"- GPM/XPM: {gpm}/{xpm}"
         )
-    
+    joined_player_data = "\n\n".join(player_data)
     formatted_output = (
         f"Match ID: {match_id}\n"
         f"Date: {start_time}\n"
@@ -211,7 +211,7 @@ def format_match_data(match: Dict) -> str:
         f"Winner: {winner}\n\n"
         f"Player Details:\n"
         f"{'-' * 40}\n"
-        f"{'\n\n'.join(player_data)}"
+        f"{joined_player_data}"
     )
     
     return formatted_output
