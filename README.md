@@ -40,7 +40,7 @@ export OPENDOTA_API_KEY=your_api_key_here
 ### Running the server directly
 
 ```bash
-python -m src.opendota-server.server
+python -m src.opendota_server.server
 ```
 
 ### Running the server with Claude Desktop
