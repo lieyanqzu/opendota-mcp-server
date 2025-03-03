@@ -42,27 +42,34 @@ export OPENDOTA_API_KEY=your_api_key_here
 python -m src.opendota-server.server
 ```
 
-### Using the client
+### Running the server with Claude Desktop
+
+Follow this: https://modelcontextprotocol.io/quickstart/user
+
+If you use WSL, assuming you have cloned the repo and set up the python environment, this is how I wrote the claude_desktop_config.json:
+
+```json
+{
+  "mcpServers": {
+    "opendota": {
+      "command": "wsl.exe",
+      "args": [
+        "--",
+        "bash",
+        "-c",
+        "cd ~/opendota-mcp-server && source .venv/bin/activate && python src/opendota_server/server.py"
+      ]
+    }
+  }
+}
+```
+
+### Using the example client
 
 ```bash
 python -m src.client
 ```
 
-## Development
-
-```bash
-# Format code
-black src/
-
-# Check code quality
-ruff check src/
-
-# Sort imports
-isort src/
-
-# Type checking
-pyright
-```
 
 ## License
 
