@@ -70,31 +70,31 @@ async def main() -> None:
                 logger.info("Connection initialized")
 
                 # List available resources/tools
-                resources = await session.list_resources()
-                resource_list = list(resources)
-                logger.info(f"Found {len(resource_list)} available tools")
+                tools = await session.list_tools()
+                tool_list = list(tools)
+                logger.info(f"Found {len(tool_list)} available tools")
 
                 print("Available OpenDota API Tools:")
-                for i, resource in enumerate(resource_list, 1):
-                    print(f"{i}. {resource}")
+                for i, tool in enumerate(tool_list, 1):
+                    print(f"{i}. {tool}")
                 print("\n" + "-" * 50 + "\n")
 
-                # Example: Search for a player named "Dendi"
-                search_result = await search_for_player(session, "Dendi")
-                print("Search Results for 'Dendi':")
+                # Example: Search for a player named "Saadman01"
+                search_result = await search_for_player(session, "Saadman01")
+                print("Search Results for 'Saadman01':")
                 print(search_result)
                 print("\n" + "-" * 50 + "\n")
 
-                # Example: Get info for a specific player (Dendi's ID)
-                dendi_id = 70388657  # Dendi's account ID
-                player_info = await get_player_info(session, dendi_id)
-                print(f"Player Info for Dendi (ID: {dendi_id}):")
+                # Example: Get info for a specific player (dota legend Saadman01)
+                saadman_id = 329977411
+                player_info = await get_player_info(session, saadman_id)
+                print(f"Player Info for Dendi (ID: {saadman_id}):")
                 print(player_info)
                 print("\n" + "-" * 50 + "\n")
 
                 # Example: Get recent matches for the player
-                recent_matches = await get_matches(session, dendi_id, 3)
-                print(f"Recent Matches for Dendi (ID: {dendi_id}):")
+                recent_matches = await get_matches(session, saadman_id, 3)
+                print(f"Recent Matches for Saadman01 (ID: {saadman_id}):")
                 print(recent_matches)
 
     except Exception as e:

@@ -44,7 +44,7 @@ OPENDOTA_API_KEY = os.getenv("OPENDOTA_API_KEY", "")
 API_PARAMS = {"api_key": OPENDOTA_API_KEY} if OPENDOTA_API_KEY else {}
 
 # Request rate limiting
-MAX_REQUESTS_PER_MINUTE = 60  # Default OpenDota rate limit
+MAX_REQUESTS_PER_MINUTE = 60
 request_timestamps = []
 
 

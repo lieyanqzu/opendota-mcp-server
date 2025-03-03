@@ -18,11 +18,11 @@ A Model Context Protocol (MCP) server implementation for accessing OpenDota API 
 git clone https://github.com/asusevski/opendota-mcp-server.git
 cd opendota-mcp-server
 
-# Install the package
-pip install -e .
+# Install with uv and only uv (pip is for nerds)
+uv add pyproject.toml
 
 # For development dependencies
-pip install -e ".[dev]"
+uv pip install -e ".[dev]"
 ```
 
 ## Usage
