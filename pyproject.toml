@@ -3,9 +3,9 @@ requires = ["setuptools", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "opendota-agent"
+name = "opendota-mcp-server"
 version = "0.1.1"
-description = "Automatic topic labeling using LLMs"
+description = "OpenDota API Model Context Protocol server for AI assistants"
 authors = [
     {name = "Anthony Susevski", email = "asusevski@gmail.com"}
 ]
@@ -32,7 +32,7 @@ dependencies = [
     "streamlit",
     "uuid>=1.30",
 ]
-urls = {Repository = "https://github.com/asusevski/opendota-agent"}
+urls = {Repository = "https://github.com/asusevski/opendota-mcp-server"}
 
 [project.optional-dependencies]
 dev = [

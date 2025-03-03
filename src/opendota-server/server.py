@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
 OpenDota MCP Server
 
@@ -7,19 +7,34 @@ allowing AI assistants to retrieve real-time Dota 2 statistics, match data,
 player information, and more.
 
 Usage:
-    python opendota_mcp.py
+    python -m src.opendota-server.server
 
 Environment Variables:
     OPENDOTA_API_KEY - Your OpenDota API key (optional but recommended to avoid rate limits)
 """
 
-import os
-import json
 import asyncio
-import httpx
-from typing import Dict, List, Any, Optional, Union
+import json
+import logging
+import os
+import time
 from dataclasses import dataclass
+from datetime import datetime
+from functools import lru_cache
+from typing import Any, Dict, List, Optional, Union
+
+import httpx
 from mcp.server.fastmcp import FastMCP
+
+# Configure logging
+log_level = os.getenv("LOG_LEVEL", "INFO").upper()
+log_level_value = getattr(logging, log_level, logging.INFO)
+
+logging.basicConfig(
+    level=log_level_value,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+)
+logger = logging.getLogger("opendota-server")
 
 # Initialize FastMCP server
 mcp = FastMCP("OpenDota")
@@ -31,6 +46,10 @@ OPENDOTA_API_KEY = os.getenv("OPENDOTA_API_KEY", "")
 
 # Add API key to requests if available
 API_PARAMS = {"api_key": OPENDOTA_API_KEY} if OPENDOTA_API_KEY else {}
+
+# Request rate limiting
+MAX_REQUESTS_PER_MINUTE = 60  # Default OpenDota rate limit
+request_timestamps = []
 
 # Models for response data
 @dataclass
@@ -74,13 +93,60 @@ class Hero:
     roles: List[str] = None
 
 # Helper Functions
+async def apply_rate_limit():
+    """Apply rate limiting to avoid hitting API limits."""
+    global request_timestamps
+    
+    # Clean up old timestamps (older than 1 minute)
+    current_time = time.time()
+    request_timestamps = [t for t in request_timestamps if current_time - t < 60]
+    
+    # Check if we're at the limit
+    if len(request_timestamps) >= MAX_REQUESTS_PER_MINUTE:
+        # Calculate time to wait
+        oldest_timestamp = min(request_timestamps)
+        time_to_wait = 60 - (current_time - oldest_timestamp) + 0.1  # Add a small buffer
+        
+        if time_to_wait > 0:
+            logger.warning(f"Rate limit approaching, waiting {time_to_wait:.2f} seconds")
+            await asyncio.sleep(time_to_wait)
+    
+    # Add current request timestamp
+    request_timestamps.append(time.time())
+
+@lru_cache(maxsize=100)
+def get_cache_key(endpoint: str, params: Dict = None) -> str:
+    """Generate a cache key from the endpoint and params."""
+    if params:
+        param_str = "&".join(f"{k}={v}" for k, v in sorted(params.items()))
+        return f"{endpoint}?{param_str}"
+    return endpoint
+
+# Cache for API responses (simple in-memory cache)
+api_cache = {}
+CACHE_TTL = 300  # 5 minutes in seconds
+
 async def make_opendota_request(endpoint: str, params: Dict = None) -> Dict[str, Any]:
-    """Make a request to the OpenDota API with proper error handling."""
+    """Make a request to the OpenDota API with proper error handling and caching."""
+    # Apply rate limiting
+    await apply_rate_limit()
+    
     url = f"{OPENDOTA_API_BASE}/{endpoint}"
     request_params = API_PARAMS.copy()
     if params:
         request_params.update(params)
-
+    
+    # Check cache first
+    cache_key = get_cache_key(endpoint, request_params)
+    cache_entry = api_cache.get(cache_key)
+    if cache_entry:
+        timestamp, data = cache_entry
+        if time.time() - timestamp < CACHE_TTL:
+            logger.debug(f"Cache hit for {cache_key}")
+            return data
+    
+    logger.info(f"Making request to {endpoint} with params {request_params}")
+    
     async with httpx.AsyncClient() as client:
         try:
             response = await client.get(
@@ -90,18 +156,29 @@ async def make_opendota_request(endpoint: str, params: Dict = None) -> Dict[str,
                 timeout=10.0
             )
             response.raise_for_status()
-            return response.json()
+            data = response.json()
+            
+            # Cache the response
+            api_cache[cache_key] = (time.time(), data)
+            
+            return data
         except httpx.TimeoutError:
+            logger.error(f"Request timed out for {endpoint}")
             return {"error": "Request timed out, please try again later"}
         except httpx.HTTPStatusError as e:
             if e.response.status_code == 429:
+                logger.error(f"Rate limit exceeded for {endpoint}")
                 return {"error": "Rate limit exceeded. Consider using an API key for more requests."}
             if e.response.status_code == 404:
+                logger.error(f"Resource not found: {endpoint}")
                 return {"error": "Not found. The requested resource doesn't exist."}
             if e.response.status_code >= 500:
+                logger.error(f"OpenDota API server error: {e.response.status_code}")
                 return {"error": "OpenDota API server error. Please try again later."}
+            logger.error(f"HTTP error {e.response.status_code} for {endpoint}: {e.response.text}")
             return {"error": f"HTTP error {e.response.status_code}: {e.response.text}"}
         except Exception as e:
+            logger.error(f"Unexpected error for {endpoint}: {str(e)}")
             return {"error": f"Unexpected error: {str(e)}"}
 
 def format_rank_tier(rank_tier: Optional[int]) -> str:
@@ -132,7 +209,8 @@ def format_duration(seconds: int) -> str:
 
 def format_timestamp(unix_timestamp: int) -> str:
     """Format Unix timestamp to a human-readable date."""
-    from datetime import datetime
+    if not unix_timestamp:
+        return "Unknown"
     dt = datetime.fromtimestamp(unix_timestamp)
     return dt.strftime("%Y-%m-%d %H:%M:%S")
 
@@ -401,6 +479,7 @@ async def get_player_heroes(account_id: int, limit: int = 5) -> str:
     if limit > 20:
         limit = 20  # Cap for reasonable response size
         
+    # Get hero usage data
     heroes_data = await make_opendota_request(f"players/{account_id}/heroes")
     
     if "error" in heroes_data:
@@ -409,42 +488,51 @@ async def get_player_heroes(account_id: int, limit: int = 5) -> str:
     if not heroes_data or len(heroes_data) == 0:
         return "No hero data found for this player."
     
-    # Get hero names
+    # Get hero lookup table from cache or API
     heroes_names = await make_opendota_request("heroes")
     hero_id_to_name = {}
     
-    if not isinstance(heroes_names, dict) and not isinstance(heroes_names, list):
-        # Use simple dictionary for hero names
-        hero_id_to_name = {
-            1: "Anti-Mage", 2: "Axe", 3: "Bane", 4: "Bloodseeker", 5: "Crystal Maiden",
-            # This is just a small sample, in practice we'd have all heroes
-        }
-    else:
+    if isinstance(heroes_names, list) and heroes_names:
         # Process the heroes data to create a mapping
         for hero in heroes_names:
             if isinstance(hero, dict) and "id" in hero and "localized_name" in hero:
                 hero_id_to_name[hero["id"]] = hero["localized_name"]
+    else:
+        # Fallback to a minimal hero dictionary if API fails
+        logger.warning("Failed to get hero names, using fallback dictionary")
+        hero_id_to_name = {
+            1: "Anti-Mage", 2: "Axe", 3: "Bane", 4: "Bloodseeker", 5: "Crystal Maiden",
+            6: "Drow Ranger", 7: "Earthshaker", 8: "Juggernaut", 9: "Mirana", 10: "Morphling",
+            11: "Shadow Fiend", 12: "Phantom Lancer", 13: "Puck", 14: "Pudge", 15: "Razor",
+            # This is just a small sample of common heroes
+        }
     
-    # Sort heroes by games played
-    sorted_heroes = sorted(heroes_data, key=lambda x: x.get("games", 0), reverse=True)
-    
-    formatted_heroes = []
-    
-    for i, hero in enumerate(sorted_heroes[:limit]):
-        hero_id = hero.get("hero_id", 0)
-        hero_name = hero_id_to_name.get(hero_id, f"Hero {hero_id}")
-        games = hero.get("games", 0)
-        wins = hero.get("win", 0)
-        win_rate = (wins / games * 100) if games > 0 else 0
+    try:
+        # Sort heroes by games played
+        sorted_heroes = sorted(heroes_data, key=lambda x: x.get("games", 0), reverse=True)
         
-        formatted_heroes.append(
-            f"{i+1}. {hero_name} (ID: {hero_id})\n"
-            f"   Games: {games}\n"
-            f"   Wins: {wins}\n"
-            f"   Win Rate: {win_rate:.2f}%"
-        )
-    
-    return f"Most Played Heroes for Player ID {account_id}:\n\n" + "\n\n".join(formatted_heroes)
+        formatted_heroes = []
+        
+        for i, hero in enumerate(sorted_heroes[:limit]):
+            hero_id = hero.get("hero_id", 0)
+            hero_name = hero_id_to_name.get(hero_id, f"Hero {hero_id}")
+            games = hero.get("games", 0)
+            wins = hero.get("win", 0)
+            win_rate = (wins / games * 100) if games > 0 else 0
+            last_played = format_timestamp(hero.get("last_played", 0))
+            
+            formatted_heroes.append(
+                f"{i+1}. {hero_name} (ID: {hero_id})\n"
+                f"   Games: {games}\n"
+                f"   Wins: {wins}\n"
+                f"   Win Rate: {win_rate:.2f}%\n"
+                f"   Last Played: {last_played}"
+            )
+        
+        return f"Most Played Heroes for Player ID {account_id}:\n\n" + "\n\n".join(formatted_heroes)
+    except Exception as e:
+        logger.error(f"Error formatting hero data: {e}")
+        return f"Error processing heroes data: {str(e)}"
 
 @mcp.tool()
 async def get_hero_stats(hero_id: Optional[int] = None) -> str:
@@ -990,5 +1078,36 @@ async def get_match_heroes(match_id: int) -> str:
         f"Dire:\n" + "\n".join(f"- {p}" for p in dire_players)
     )
 
+def cleanup_cache():
+    """Cleanup expired cache entries to prevent memory leaks."""
+    current_time = time.time()
+    expired_keys = [
+        key for key, (timestamp, _) in api_cache.items() 
+        if current_time - timestamp >= CACHE_TTL
+    ]
+    
+    for key in expired_keys:
+        del api_cache[key]
+    
+    logger.info(f"Cache cleanup: removed {len(expired_keys)} expired entries, {len(api_cache)} remaining")
+
+async def start_cache_cleanup_task():
+    """Start a background task to periodically clean the cache."""
+    while True:
+        await asyncio.sleep(CACHE_TTL)  # Run cleanup every cache TTL period
+        cleanup_cache()
+
+async def startup():
+    """Run startup tasks."""
+    logger.info("Starting OpenDota MCP Server")
+    # Start cache cleanup task in the background
+    asyncio.create_task(start_cache_cleanup_task())
+
 if __name__ == "__main__":
+    # Register startup handler
+    mcp.add_startup_handler(startup)
+    
+    # Run the server
+    logger.info(f"OpenDota API key present: {bool(OPENDOTA_API_KEY)}")
+    logger.info(f"Starting MCP server with stdio transport")
     mcp.run(transport='stdio')
