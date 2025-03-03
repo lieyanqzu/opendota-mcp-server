@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 OpenDota MCP Client
 
@@ -10,7 +9,6 @@ import asyncio
 import logging
 import os
 import sys
-from typing import Any, Dict, List, Optional
 
 from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client

@@ -1,4 +1,3 @@
-#!/usr/bin/env python
 """
 Integration-style tests for the OpenDota MCP Server API functionality.
 Uses mock responses to test the API tool implementations.
@@ -8,22 +7,23 @@ import asyncio
 import os
 import sys
 import unittest
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
 # Add the src directory to the path so we can import the modules
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
-from tests.test_api_mocks import get_mock_response
 from src.opendota_server.server import (
-    get_player_by_id,
-    get_player_recent_matches,
-    get_match_data,
-    get_player_win_loss,
-    get_player_heroes,
     get_hero_stats,
-    search_player,
+    get_match_data,
+    get_player_by_id,
+    get_player_heroes,
+    get_player_recent_matches,
+    get_player_win_loss,
     make_opendota_request,
+    search_player,
 )
+from tests.test_api_mocks import get_mock_response
+
 
 class TestMCPTools(unittest.IsolatedAsyncioTestCase):
     """Test case for MCP server tools."""
@@ -92,11 +92,21 @@ class TestMCPTools(unittest.IsolatedAsyncioTestCase):
         self.assertIn("Dendi", result)
         self.assertIn("Account ID: 70388657", result)
 
-    @unittest.skip("Hero stats tests need to be implemented")
     async def test_get_hero_stats(self):
         """Test get_hero_stats function."""
-        # This would test specific hero stats
-        pass
+        # Test with specific hero ID
+        result = await get_hero_stats(1)
+        self.assertIn("Hero Stats for Anti-Mage", result)
+        self.assertIn("Roles:", result)
+        self.assertIn("Primary Attribute:", result)
+        self.assertIn("Win Rates by Bracket:", result)
+        self.assertIn("Pro Scene:", result)
+        
+        # Test without hero ID (should return all heroes)
+        result = await get_hero_stats()
+        self.assertIn("Hero Win Rates:", result)
+        self.assertIn("Anti-Mage:", result) 
+        self.assertIn("win rate", result)
 
 if __name__ == "__main__":
     unittest.main()

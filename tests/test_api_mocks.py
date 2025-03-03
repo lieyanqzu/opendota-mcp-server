@@ -1,9 +1,8 @@
-#!/usr/bin/env python
 """
 Mock data and response handlers for testing the OpenDota MCP Server.
 """
 
-from typing import Dict, Any, List
+from typing import Any, Dict, List
 
 # Mock API responses for unit tests
 MOCK_RESPONSES = {
@@ -40,6 +39,40 @@ MOCK_RESPONSES = {
         "team_name": "Mock Team",
         "team_id": 789,
     },
+    
+    # Pro player recent matches
+    "players/456/recentMatches": [
+        {
+            "match_id": 6789125,
+            "player_slot": 128,
+            "radiant_win": True,
+            "duration": 2200,
+            "game_mode": 2,
+            "lobby_type": 7,
+            "hero_id": 3,
+            "start_time": 1593100000,
+            "kills": 12,
+            "deaths": 2,
+            "assists": 8,
+            "gold_per_min": 600,
+            "xp_per_min": 700,
+        },
+        {
+            "match_id": 6789126,
+            "player_slot": 1,
+            "radiant_win": False,
+            "duration": 1900,
+            "game_mode": 2,
+            "lobby_type": 7,
+            "hero_id": 4,
+            "start_time": 1593090000,
+            "kills": 8,
+            "deaths": 3,
+            "assists": 15,
+            "gold_per_min": 550,
+            "xp_per_min": 650,
+        },
+    ],
     
     # Player win/loss
     "players/123/wl": {
@@ -149,9 +182,48 @@ MOCK_RESPONSES = {
             "1_win": 500,
             "2_pick": 2000,
             "2_win": 1100,
+            "3_pick": 3000,
+            "3_win": 1500,
+            "4_pick": 4000, 
+            "4_win": 2000,
+            "5_pick": 5000,
+            "5_win": 2500,
+            "6_pick": 3000,
+            "6_win": 1600,
+            "7_pick": 2000,
+            "7_win": 1000,
+            "8_pick": 1000,
+            "8_win": 550,
             "pro_pick": 100,
             "pro_win": 55,
             "pro_ban": 80,
+        },
+        {
+            "id": 2,
+            "name": "npc_dota_hero_axe",
+            "localized_name": "Axe",
+            "primary_attr": "str",
+            "attack_type": "Melee",
+            "roles": ["Initiator", "Durable", "Disabler", "Jungler"],
+            "1_pick": 1200,
+            "1_win": 700,
+            "2_pick": 2200,
+            "2_win": 1300,
+            "3_pick": 3200,
+            "3_win": 1700,
+            "4_pick": 4200,
+            "4_win": 2100,
+            "5_pick": 5200,
+            "5_win": 2700,
+            "6_pick": 3200,
+            "6_win": 1700,
+            "7_pick": 2200,
+            "7_win": 1150,
+            "8_pick": 1200,
+            "8_win": 650,
+            "pro_pick": 120,
+            "pro_win": 65,
+            "pro_ban": 90,
         },
     ],
     
