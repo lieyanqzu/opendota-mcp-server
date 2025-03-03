@@ -2,7 +2,7 @@
 Mock data and response handlers for testing the OpenDota MCP Server.
 """
 
-from typing import Any, Dict, List
+from typing import Any, Dict, Optional
 
 # Mock API responses for unit tests
 MOCK_RESPONSES = {
@@ -305,9 +305,95 @@ MOCK_RESPONSES = {
             "dire_team": [6, 7, 8, 9, 10],
         },
     ],
+    
+    # Player heroes
+    "players/123/heroes": [
+        {
+            "hero_id": 1,
+            "games": 50,
+            "win": 30,
+        },
+        {
+            "hero_id": 2,
+            "games": 40,
+            "win": 25,
+        },
+    ],
+    
+    # Player peers
+    "players/123/peers": [
+        {
+            "account_id": 234,
+            "personaname": "Peer1",
+            "matches": 20,
+            "win": 12,
+            "with_win": 10,
+            "with_games": 15,
+        },
+        {
+            "account_id": 345,
+            "personaname": "Peer2",
+            "matches": 15,
+            "win": 8,
+            "with_win": 6,
+            "with_games": 10,
+        },
+    ],
+    
+    # Player totals
+    "players/123/totals": [
+        {
+            "field": "kills",
+            "sum": 1500,
+            "n": 100,
+            "avg": 15.0,
+        },
+        {
+            "field": "deaths",
+            "sum": 800,
+            "n": 100,
+            "avg": 8.0,
+        },
+        {
+            "field": "assists",
+            "sum": 2000,
+            "n": 100,
+            "avg": 20.0,
+        },
+    ],
+    
+    # Player rankings
+    "players/123/rankings": [
+        {
+            "hero_id": 1,
+            "score": 80.5,
+            "percent_rank": 0.95,
+        },
+        {
+            "hero_id": 2,
+            "score": 75.2,
+            "percent_rank": 0.92,
+        },
+    ],
+    
+    # Player wordcloud
+    "players/123/wordcloud": {
+        "my_word_counts": {
+            "gg": 100,
+            "wp": 80,
+            "noob": 50,
+            "thanks": 30,
+        },
+        "all_word_counts": {
+            "gg": 200,
+            "wp": 150,
+            "noob": 100,
+            "thanks": 60,
+        },
+    },
 }
 
-def get_mock_response(endpoint: str, params: Dict = None) -> Dict[str, Any]:
+def get_mock_response(endpoint: str, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """Get a mock response for the given API endpoint."""
     # Handle query parameters in the endpoint
     if params and "q" in params:

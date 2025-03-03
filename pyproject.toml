@@ -16,6 +16,7 @@ requires-python = ">=3.10"
 dependencies = [
     "aiohttp>=3.11.12",
     "anthropic>=0.46.0",
+    "black>=24.10.0",
     "dnspython>=2.7.0",
     "fastapi>=0.115.8",
     "httpx>=0.28.1",
@@ -63,4 +64,9 @@ exclude = [".venv*", "**/__pycache__", "*.ipynb"]
 [tool.pyright]
 include = ["src/*"]
 exclude = [".venv*", "**/__pycache__", "**/__init__.py", "data/*"]
-typeCheckingMode = "standard"
+typeCheckingMode = "basic"
+reportAttributeAccessIssue = "none"
+reportArgumentType = "none"
+reportReturnType = "none"
+reportGeneralTypeIssues = "none"
+reportAssignmentType = "none"

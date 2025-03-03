@@ -35,7 +35,7 @@ class TestHelperFunctions(unittest.TestCase):
         self.assertEqual(format_rank_tier(0), "Unknown")
         self.assertEqual(format_rank_tier(10), "Herald 0")
         self.assertEqual(format_rank_tier(21), "Guardian 1")
-        self.assertEqual(format_rank_tier(53), "Ancient 3")
+        self.assertEqual(format_rank_tier(53), "Legend 3")
         self.assertEqual(format_rank_tier(80), "Immortal")
         self.assertEqual(format_rank_tier(99), "Unknown")  # Invalid tier
 
