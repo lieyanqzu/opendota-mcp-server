@@ -11,6 +11,7 @@ A Model Context Protocol (MCP) server implementation for accessing OpenDota API 
 - Search for players by name
 - And more!
 
+
 ## Installation
 
 ```bash
@@ -70,6 +71,24 @@ If you use WSL, assuming you have cloned the repo and set up the python environm
 python -m src.client
 ```
 
+### Specific tools included:
+  - get_player_by_id - Retrieve player information by account ID
+  - get_player_recent_matches - Get recent matches for a player
+  - get_match_data - Get detailed data for a specific match
+  - get_player_win_loss - Get win/loss statistics for a player
+  - get_player_heroes - Get a player's most played heroes
+  - get_hero_stats - Get statistics for heroes
+  - search_player - Search for players by name
+  - get_pro_players - Get list of professional players
+  - get_pro_matches - Get recent professional matches
+  - get_player_peers - Get players who have played with a specified player
+  - get_heroes - Get list of all Dota 2 heroes
+  - get_player_totals - Get player's overall stats totals
+  - get_player_rankings - Get player hero rankings
+  - get_player_wordcloud - Get most common words used by player in chat
+  - get_team_info - Get information about a team
+  - get_public_matches - Get recent public matches
+  - get_match_heroes - Get heroes played in a specific match
 
 ## License
 
