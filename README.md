@@ -1,5 +1,7 @@
 # OpenDota MCP Server
 
+[![smithery badge](https://smithery.ai/badge/@lieyanqzu/opendota-mcp-server)](https://smithery.ai/server/@lieyanqzu/opendota-mcp-server)
+
 A Model Context Protocol (MCP) server implementation for accessing OpenDota API data. This server enables LLMs and AI assistants to retrieve real-time Dota 2 statistics, match data, player information, and more through a standard interface.
 
 ## Features
@@ -14,6 +16,15 @@ A Model Context Protocol (MCP) server implementation for accessing OpenDota API 
 
 ## Installation
 
+### Installing via Smithery
+
+To install opendota-mcp-server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@lieyanqzu/opendota-mcp-server):
+
+```bash
+npx -y @smithery/cli install @lieyanqzu/opendota-mcp-server --client claude
+```
+
+### Manual Installation
 ```bash
 # Clone the repository
 git clone https://github.com/asusevski/opendota-mcp-server.git
@@ -93,4 +104,3 @@ python -m src.client
 ## License
 
 MIT
-
