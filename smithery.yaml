@@ -7,20 +7,13 @@ startCommand:
     type: object
     required: []
     properties:
-      opendotaApiKey:
+      apiKey:
         type: string
         default: ""
-        description: OpenDota API key to increase rate limits
-    description: Configuration for OpenDota MCP Server
+        description: Your OpenDota API key to avoid rate limits
   commandFunction:
     # A JS function that produces the CLI command based on the given config to start the MCP on stdio.
     |-
-    (config) => ({
-      command: 'python',
-      args: ['-m', 'src.opendota_server.server'],
-      env: {
-        OPENDOTA_API_KEY: config.opendotaApiKey || ''
-      }
-    })
+    (config) => ({ command: 'python', args: ['-m', 'src.opendota_server.server'], env: config.apiKey ? { OPENDOTA_API_KEY: config.apiKey } : {} })
   exampleConfig:
-    opendotaApiKey: YOUR_API_KEY_HERE
+    apiKey: your_api_key_here
